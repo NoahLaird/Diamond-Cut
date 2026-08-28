@@ -1,5 +1,3 @@
-
-
 Diamond cut · HTML
 <!DOCTYPE html>
 <html lang="en">
@@ -27,9 +25,15 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .cd-num{font-size:19px;font-weight:900;color:#F0B429;line-height:1;font-variant-numeric:tabular-nums}
 .cd-lbl{font-size:8px;color:#6B7280;letter-spacing:0.1em}
 .cd-dec{font-size:9px;color:#6B7280;text-align:center;border-left:1px solid #252535;padding-left:12px;line-height:1.4}
-.tab-btn{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;color:#6B7280;font-size:10px;font-weight:400;letter-spacing:0.05em;text-transform:uppercase;transition:color 0.15s}
+.tab-btn{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 7px;color:#6B7280;font-size:9px;font-weight:400;letter-spacing:0.04em;text-transform:uppercase;transition:color 0.15s}
 .tab-btn.active{color:#F0B429;font-weight:700}
-.tab-icon{font-size:20px}
+.tab-icon{font-size:18px}
+.lf-filter{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.lf-filter::-webkit-scrollbar{display:none}
+.lf-btn{background:#1E1E2A;border:1px solid #252535;color:#6B7280;border-radius:20px;padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.15s}
+.lf-btn.active{background:#F0B429;border-color:#F0B429;color:#000}
+.today-badge{background:#F0B429;color:#000;font-size:9px;font-weight:800;padding:2px 6px;border-radius:10px;letter-spacing:0.08em}
+.pr-badge{background:#34D399;color:#000;font-size:9px;font-weight:800;padding:2px 6px;border-radius:10px;letter-spacing:0.08em}
 .page{padding:16px;display:flex;flex-direction:column;gap:12px}
 .card{background:#13131A;border:1px solid #252535;border-radius:12px;padding:16px}
 .card-label{font-size:11px;color:#6B7280;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px}
@@ -241,6 +245,19 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
       </div>
     </div>
  
+    <!-- LIFTS -->
+    <div id="page-lifts" class="page" style="display:none;">
+      <div class="card" style="padding:12px 16px;">
+        <div class="lf-filter">
+          <button class="lf-btn active" data-filter="all" onclick="filterLifts('all')">All</button>
+          <button class="lf-btn" data-filter="push" onclick="filterLifts('push')">🔥 Push</button>
+          <button class="lf-btn" data-filter="pull" onclick="filterLifts('pull')">💪 Pull</button>
+          <button class="lf-btn" data-filter="legs" onclick="filterLifts('legs')">🦵 Legs</button>
+        </div>
+      </div>
+      <div id="lifts-container" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+ 
     <!-- PROGRESS -->
     <div id="page-progress" class="page" style="display:none;">
       <div class="card">
@@ -279,9 +296,10 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
  
   <div id="tabbar">
     <button class="tab-btn active" id="tab-home" onclick="switchTab('home')"><span class="tab-icon">🏠</span>Home</button>
-    <button class="tab-btn" id="tab-coach" onclick="switchTab('coach')"><span class="tab-icon" style="font-size:22px;">◆</span>Coach</button>
+    <button class="tab-btn" id="tab-coach" onclick="switchTab('coach')"><span class="tab-icon" style="font-size:20px;">◆</span>Coach</button>
     <button class="tab-btn" id="tab-track" onclick="switchTab('track')"><span class="tab-icon">🍗</span>Track</button>
-    <button class="tab-btn" id="tab-progress" onclick="switchTab('progress')"><span class="tab-icon">📈</span>Progress</button>
+    <button class="tab-btn" id="tab-lifts" onclick="switchTab('lifts')"><span class="tab-icon">🏋️</span>Lifts</button>
+    <button class="tab-btn" id="tab-progress" onclick="switchTab('progress')"><span class="tab-icon">📈</span>Stats</button>
   </div>
 </div>
  
@@ -315,12 +333,18 @@ LIFESTYLE: Weekends only drinking max 3 clear spirits or -196s. Sleep 9+ hrs. Cu
  
 STYLE: Short direct no fluff. Respond immediately to whatever he sends. For check-ins (sleep/weight/soreness/energy/schedule): write FULL day plan. For food: calc macros vs 250g/3500cal. Always reference Dec 11 when motivating. Flag protein shortfalls.`;
  
+const LIFTS_DEF={'Bench Press':{start:135,goal:185,unit:'lbs',muscle:'push',step:5},'OHP':{start:95,goal:135,unit:'lbs',muscle:'push',step:5},'Cable Crossovers':{start:50,goal:75,unit:'lbs',muscle:'push',step:5},'Pec Deck':{start:120,goal:160,unit:'lbs',muscle:'push',step:10},'Lateral Raises':{start:20,goal:35,unit:'lbs',muscle:'push',step:2.5},'Tricep Extension':{start:100,goal:150,unit:'lbs',muscle:'push',step:10},'Cable Rows':{start:200,goal:260,unit:'lbs',muscle:'pull',step:10},'Lat Pulldown':{start:150,goal:200,unit:'lbs',muscle:'pull',step:10},'Barbell Curls':{start:25,goal:65,unit:'lbs',muscle:'pull',step:5},'Hammer Curls':{start:25,goal:50,unit:'lbs',muscle:'pull',step:5},'Wrist Curls':{start:30,goal:60,unit:'lbs',muscle:'pull',step:5},'Shrugs':{start:60,goal:100,unit:'lbs DB',muscle:'pull',step:5},'Pull-ups':{start:3,goal:15,unit:'reps',muscle:'pull',step:1},'Squat':{start:225,goal:315,unit:'lbs',muscle:'legs',step:5},'Leg Press':{start:460,goal:600,unit:'lbs',muscle:'legs',step:20},'Leg Curl':{start:140,goal:190,unit:'lbs',muscle:'legs',step:10},'Leg Extension':{start:150,goal:210,unit:'lbs',muscle:'legs',step:10},'Farmer Carries':{start:25,goal:50,unit:'lbs/side',muscle:'legs',step:5}};
+const DOW_MUSCLES={0:[],1:['push'],2:['pull'],3:['push'],4:['legs'],5:['push','pull'],6:['legs','pull']};
+const MCOL={push:'#F0B429',pull:'#4B7BF5',legs:'#34D399'};
 let food={protein:0,cals:0,items:[]};
 let wLog=[];
+let lifts={};
 let hist=[];
 let busy=false;
 let showC=false;
 let showSF=false;
+let liftFilter='all';
+let openLog=null;
 const DOW=new Date().getDay();
  
 function tk(){return new Date().toISOString().slice(0,10)}
@@ -330,6 +354,7 @@ function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g
 function init(){
   try{const d=localStorage.getItem('food-'+tk());if(d)food=JSON.parse(d);}catch(e){}
   try{const d=localStorage.getItem('wlog');if(d)wLog=JSON.parse(d);}catch(e){}
+  loadLifts();
   tick();setInterval(tick,1000);
   const w=WOD[DOW];
   document.getElementById('wod-emoji').textContent=w.e;
@@ -353,7 +378,7 @@ function tick(){
 }
  
 function switchTab(t){
-  ['home','coach','track','progress'].forEach(x=>{
+  ['home','coach','track','lifts','progress'].forEach(x=>{
     const p=document.getElementById('page-'+x);
     p.style.display='none';
     document.getElementById('tab-'+x).classList.remove('active');
@@ -372,6 +397,7 @@ function switchTab(t){
   document.getElementById('tab-'+t).classList.add('active');
   if(t==='track')updateFood();
   if(t==='progress'){updateProg();drawCharts();}
+  if(t==='lifts')renderLifts();
 }
  
 function goCoach(type){switchTab('coach');setTimeout(()=>qs(type),300);}
@@ -413,7 +439,8 @@ function ctx(){
   const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   const latest=wLog.length>0?wLog[wLog.length-1]:null;
   const items=food.items.map(i=>i.name).join(', ')||'nothing yet';
-  return`[LIVE CONTEXT — ${today}]\nToday: ${w.n} day (${w.d})\nFood logged: ${food.protein}g protein / ${food.cals} cals (target 250g/3500cal)\nItems: ${items}\n${latest?`Last weight: ${latest.weight}lbs${latest.bf?' @ '+latest.bf+'% BF':''}`:''}\n\n`;
+  const liftCtx=Object.entries(lifts).map(([n,l])=>n+' '+l.current+' '+l.unit).join(' | ');
+  return`[LIVE CONTEXT — ${today}]\nToday: ${w.n} day (${w.d})\nFood: ${food.protein}g protein / ${food.cals} cals\nItems: ${items}\n${latest?`Last weight: ${latest.weight}lbs${latest.bf?' @ '+latest.bf+'% BF':''}`:''}\nCurrent lifts: ${liftCtx}\n\n`;
 }
  
 function addBot(text){
@@ -536,6 +563,117 @@ function updateFood(){
     lc.style.display='block';
     le.innerHTML=food.items.map(i=>`<div class="log-item"><div><div class="log-name">${i.name}</div><div class="log-time">${i.t}</div></div><div style="text-align:right;"><div class="log-p">${i.protein}g</div><div class="log-c">${i.cals} cal</div></div></div>`).join('');
   } else {lc.style.display='none';}
+}
+ 
+// ── LIFTS ──────────────────────────────
+function loadLifts(){
+  try{
+    lifts=JSON.parse(JSON.stringify(LIFTS_DEF));
+    const s=localStorage.getItem('dc_lifts');
+    if(s){const p=JSON.parse(s);Object.keys(p).forEach(k=>{if(lifts[k])Object.assign(lifts[k],p[k]);});}
+    Object.keys(lifts).forEach(k=>{if(lifts[k].current===undefined)lifts[k].current=lifts[k].start;if(!lifts[k].history)lifts[k].history=[];});
+  }catch(e){
+    lifts=JSON.parse(JSON.stringify(LIFTS_DEF));
+    Object.keys(lifts).forEach(k=>{lifts[k].current=lifts[k].start;lifts[k].history=[];});
+  }
+}
+ 
+function saveLifts(){try{localStorage.setItem('dc_lifts',JSON.stringify(lifts));}catch(e){}}
+ 
+function filterLifts(f){
+  liftFilter=f;
+  document.querySelectorAll('.lf-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.lf-btn[data-filter="'+f+'"]').classList.add('active');
+  renderLifts();
+}
+ 
+function renderLifts(){
+  const container=document.getElementById('lifts-container');
+  if(!container)return;
+  const todayM=DOW_MUSCLES[DOW]||[];
+  container.innerHTML='';
+  const names=Object.keys(lifts).filter(n=>liftFilter==='all'||lifts[n].muscle===liftFilter);
+  if(!names.length){container.innerHTML='<div style="text-align:center;color:#6B7280;padding:40px;">No lifts for this filter.</div>';return;}
+  names.forEach(name=>{
+    const lift=lifts[name];
+    const isToday=todayM.includes(lift.muscle);
+    const color=MCOL[lift.muscle]||'#F0B429';
+    const next=lift.current+lift.step;
+    const pct=lift.goal>lift.start?Math.min(Math.round(((lift.current-lift.start)/(lift.goal-lift.start))*100),100):0;
+    const isLogging=openLog===name;
+    const safeKey=name.replace(/[\s\/\-]/g,'_');
+    const hist2=lift.history||[];
+    const last=hist2.length>0?hist2[hist2.length-1]:null;
+    const lastStr=last?new Date(last.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · '+last.weight+' '+lift.unit:'never';
+    const isPR=last&&hist2.length>1&&last.pr;
+    const card=document.createElement('div');
+    card.className='card';
+    card.style.borderLeft='3px solid '+color;
+    card.innerHTML=
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;">'+
+            '<span style="font-size:15px;font-weight:800;">'+name+'</span>'+
+            (isToday?'<span class="today-badge">TODAY</span>':'')+
+            (isPR?'<span class="pr-badge">PR 🎉</span>':'')+
+          '</div>'+
+          '<div style="font-size:11px;color:#6B7280;">Next: <span style="color:'+color+';font-weight:700;">'+next+' '+lift.unit+'</span> &nbsp;·&nbsp; Last: '+lastStr+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;flex-shrink:0;margin-left:10px;">'+
+          '<div style="font-size:30px;font-weight:900;color:'+color+';line-height:1;">'+lift.current+'</div>'+
+          '<div style="font-size:11px;color:#6B7280;">'+lift.unit+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="margin-bottom:10px;">'+
+        '<div class="bar-track" style="height:4px;"><div class="bar-fill" style="height:4px;width:'+pct+'%;background:'+color+';"></div></div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:10px;color:#6B7280;margin-top:4px;">'+
+          '<span>Start: '+lift.start+'</span>'+
+          '<span style="color:'+color+';">'+pct+'% to Dec 11</span>'+
+          '<span>Goal: '+lift.goal+'</span>'+
+        '</div>'+
+      '</div>'+
+      (isLogging?
+        '<div style="display:flex;gap:7px;align-items:center;">'+
+          '<input class="input-field" id="log-w-'+safeKey+'" type="number" value="'+next+'" placeholder="'+next+'" style="flex:1;padding:8px 12px;">'+
+          '<input class="input-field" id="log-r-'+safeKey+'" type="number" placeholder="Reps" style="width:70px;padding:8px 10px;">'+
+          '<button class="btn btn-gold" style="padding:8px 12px;font-size:16px;" onclick="saveLift(\''+name+'\')">✓</button>'+
+          '<button class="btn btn-ghost" style="padding:8px 10px;font-size:14px;" onclick="cancelLog()">✕</button>'+
+        '</div>'
+      :
+        '<button class="btn btn-outline-gold" style="width:100%;padding:8px;font-size:12px;" onclick="openLiftLog(\''+name+'\')">↑ Log New Weight</button>'
+      );
+    container.appendChild(card);
+  });
+}
+ 
+function openLiftLog(name){
+  openLog=name;
+  renderLifts();
+  setTimeout(()=>{
+    const k=name.replace(/[\s\/\-]/g,'_');
+    const el=document.getElementById('log-w-'+k);
+    if(el){el.focus();el.select();}
+  },60);
+}
+ 
+function cancelLog(){openLog=null;renderLifts();}
+ 
+function saveLift(name){
+  const k=name.replace(/[\s\/\-]/g,'_');
+  const wEl=document.getElementById('log-w-'+k);
+  const rEl=document.getElementById('log-r-'+k);
+  if(!wEl)return;
+  const w=parseFloat(wEl.value);
+  if(!w||w<=0)return;
+  const r=rEl?parseInt(rEl.value)||null:null;
+  const prev=lifts[name].current;
+  const isPR=w>prev;
+  if(!lifts[name].history)lifts[name].history=[];
+  lifts[name].history.push({date:tk(),weight:w,reps:r,pr:isPR});
+  lifts[name].current=w;
+  openLog=null;
+  saveLifts();
+  renderLifts();
 }
  
 // ── PROGRESS ───────────────────────────
