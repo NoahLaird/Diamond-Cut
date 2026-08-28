@@ -498,7 +498,7 @@ async function send(){
     }
   }catch(e){
     hideDots();hist.pop();
-    addBot('Connection error — check your internet and try again.\n\nIf this keeps happening, tap ⚙ Key to re-enter your API key.');
+    addBot('Connection error: '+e.message+'\n\nTap ⚙ Key to re-enter your API key if needed.');
   }
   busy=false;document.getElementById('send-btn').disabled=!document.getElementById('chat-input').value.trim();
 }
